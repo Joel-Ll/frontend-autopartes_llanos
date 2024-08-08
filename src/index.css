@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* .underline-animation::after {
+  @apply absolute bottom-0 left-0 w-full h-0.5 bg-white transform scale-x-0 transition-transform duration-300;
+  content: '';
+}
+.underline-animation:hover::after {
+  @apply transform scale-x-100;
+} */
