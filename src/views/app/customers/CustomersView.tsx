@@ -16,7 +16,6 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
     backgroundColor: '#1F2937',
     color: theme.palette.common.white,
-
   },
   [`&.${tableCellClasses.body}`]: {
     fontSize: 14,
@@ -37,12 +36,13 @@ export default function Customers() {
   const [searchParams, setSearchParams] = useState('');
   const [idCustomer, setIdCustomer] = useState('');
   const navigate = useNavigate();
-  const MySwal = withReactContent(Swal)
+  const MySwal = withReactContent(Swal);
 
   const queryClient = useQueryClient();
-  const { data, isError, isLoading } = useQuery({
+  const { data, isError, isLoading, isFetching} = useQuery({
     queryKey: ['customers'],
     queryFn: () => getCustomers(searchParams),
+    refetchOnWindowFocus: false,
     retry: false,
   });
 
@@ -89,7 +89,7 @@ export default function Customers() {
     toast.error('Hubo un error');
   }
 
-  return (
+  if(data) return (
     <>
       <div className="flex justify-between items-center">
         <h1 className='text-2xl text-gray-800'>Clientes</h1>
@@ -122,13 +122,13 @@ export default function Customers() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {isLoading ? (
+            {(isLoading || isFetching) ? (
               <StyledTableRow>
                 <StyledTableCell colSpan={5} align="center">
                   <CircularProgress color="inherit" />
                 </StyledTableCell>
               </StyledTableRow>
-            ) : data?.length > 0 ? (
+            ) : data.length > 0 ? (
               data.map((customer: Customer) => (
                 <StyledTableRow key={customer._id}>
                   <StyledTableCell align="left">{customer.name}</StyledTableCell>

@@ -7,10 +7,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { deleteCategory, getCategories } from "../../../api/categoryAPI";
 import { toast } from "react-toastify";
 import { Category } from "../../../types/category";
-import { capitalizeFirstLetter } from "../../../helpers";
 import UpdateCategoryModal from "../../../components/app/categories/UpdateCategoryModal";
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
+import { confirmPassword } from "../../../api/authAPI";
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -27,7 +27,6 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   '&:nth-of-type(odd)': {
     backgroundColor: theme.palette.action.hover,
   },
-  // hide last border
   '&:last-child td, &:last-child th': {
     border: 0,
   },
@@ -43,20 +42,27 @@ export default function CategoriesView() {
 
   const queryClient = useQueryClient();
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, isFetching } = useQuery({
     queryKey: ['categories'],
     queryFn: () => getCategories(searchParams),
+    refetchOnWindowFocus: false,
     retry: false
   });
 
-  const {mutate} = useMutation({
+  const { mutate: mutateConfirPassword } = useMutation({
+    mutationFn: confirmPassword
+  })
+
+  const { mutate } = useMutation({
     mutationFn: deleteCategory,
     onError: (error) => {
       toast.error(error.message)
     },
     onSuccess: (data) => {
       toast.success(data);
-      queryClient.invalidateQueries({ queryKey: ['categories']});
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['getProductsManagement'] });
     }
   })
 
@@ -76,17 +82,35 @@ export default function CategoriesView() {
   const handleDeleteCategory = (id: Category['_id']) => {
     MySwal.fire({
       title: "¿Eliminar Registro?",
+      html: `
+        <p>Esta acción es irreversible y eliminará permanentemente la categoría seleccionada junto con todos los productos asociados. Además, todas las gestiones activas relacionadas con estos productos también se eliminarán. Por favor, introduce tu contraseña para confirmar:</p> 
+        <input type="password" id="password" class="mx-auto p-2 mt-2 w-96 border border-gray-300 rounded-sm" placeholder="Contraseña" />
+      `,
       showCancelButton: true,
       confirmButtonColor: "#d33",
       cancelButtonColor: "#3085d6",
       cancelButtonText: 'Cancelar',
-      confirmButtonText: "Eliminar"
-    }).then((result) => {
-      if(result.isConfirmed) {
-        mutate(id)
+      confirmButtonText: "Eliminar",
+      preConfirm: () => {
+        const password = (document.getElementById('password') as HTMLInputElement).value;
+        if (!password) {
+          return MySwal.showValidationMessage("Debes ingresar tu contraseña");
+        }
+        return new Promise((resolve) => {
+          mutateConfirPassword(password, {
+            onSuccess: () => {
+              resolve(true); 
+              mutate(id);
+            },
+            onError: () => {
+              MySwal.showValidationMessage('Contraseña incorrecta');
+              resolve(false);
+            }
+          });
+        });
       }
-    });
-  }
+    })
+  };
 
   if (isError) {
     toast.error('Hubo un error');
@@ -123,7 +147,7 @@ export default function CategoriesView() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {isLoading ? (
+            {(isLoading || isFetching) ? (
               <StyledTableRow>
                 <StyledTableCell colSpan={3} align="center">
                   <CircularProgress color="inherit" />
@@ -132,7 +156,7 @@ export default function CategoriesView() {
             ) : data?.length > 0 ? (
               data.map((category: Category) => (
                 <StyledTableRow key={category._id}>
-                  <StyledTableCell align="left">{capitalizeFirstLetter(category.name)}</StyledTableCell>
+                  <StyledTableCell className="uppercase" align="left">{category.name}</StyledTableCell>
                   <StyledTableCell align="right">
                     {/* Editar */}
                     <button
@@ -144,7 +168,7 @@ export default function CategoriesView() {
                   <StyledTableCell align="right">
                     <button
                       className='bg-red-500  p-2 rounded'
-                      onClick={ () => handleDeleteCategory(category._id)}
+                      onClick={() => handleDeleteCategory(category._id)}
                     ><FaTrashAlt color='#fff' /></button>
                   </StyledTableCell>
                 </StyledTableRow>

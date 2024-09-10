@@ -61,6 +61,7 @@ export default function CreateCategoryModal() {
     onSuccess: (data) => {
       toast.success(data);
       queryClient.invalidateQueries({queryKey: ['categories']});
+      queryClient.invalidateQueries({queryKey: ['selectCategories']}); 
       handleClosedModal();
     }
   });

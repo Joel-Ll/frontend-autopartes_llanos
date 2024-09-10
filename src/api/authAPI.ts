@@ -18,6 +18,20 @@ export const login = async (formData: Pick<AuthAPI, 'name' | 'password'>) => {
   }
 }
 
+export const confirmPassword = async (current_password: AuthAPI['password']) => {
+  try {
+    const url = '/auth/confirm-password';
+    const { data } = await api.post(url, {current_password} );
+    return data;
+  } catch (error) {
+    if (isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.error);
+    } else {
+      throw new Error('Hubo un error');
+    }
+  }
+}
+
 export const getUser = async () => {
   try {
     const url = '/auth/user';

@@ -1,12 +1,12 @@
 import { isAxiosError } from "axios";
 import api from "../lib/axios"
-import { Category, CategoryCreateForm, categorySchema } from "../types/category";
+import { Category, CategoryCreateForm, categoriesSchema, categorySchema } from "../types/category";
 
 type categoryAPI = {
   _id: string;
   name: string,
   params: string
-  formData: CategoryCreateForm
+  formData: CategoryCreateForm;
 }
 
 export const getCategory = async (id: Category['_id']) => {
@@ -26,12 +26,29 @@ export const getCategory = async (id: Category['_id']) => {
   }
 }
 
-
 export const getCategories = async (params: categoryAPI['params']) => {
   try {
-    const url = `/categories/${params}`;
+    const encodedTerm = encodeURIComponent(params);
+    const url = `/categories/filtered/${encodedTerm}`;
     const { data } = await api.get(url);
     return data
+  } catch (error) {
+    if (isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.error);
+    } else {
+      throw new Error('Hubo un error');
+    }
+  }
+}
+
+export const getSelectCategory = async () => {
+  try {
+    const url = '/categories/selected';
+    const { data } = await api.get(url);
+    const response = categoriesSchema.safeParse(data);
+    if(response.success) {
+      return response.data;
+    }
   } catch (error) {
     if (isAxiosError(error) && error.response) {
       throw new Error(error.response.data.error);
@@ -82,5 +99,3 @@ export const deleteCategory = async (id: Category['_id']) => {
     }
   }
 }
-
-

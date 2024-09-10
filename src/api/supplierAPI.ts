@@ -1,6 +1,6 @@
 import { isAxiosError } from "axios";
 import api from "../lib/axios"
-import { Supplier, SupplierCreateForm, supplierSchema } from "../types/supplier";
+import { Supplier, SupplierCreateForm, supplierSchema, suppliersSelectSchema } from "../types/supplier";
 
 type SupplierAPI = {
   _id: Supplier['_id']
@@ -14,7 +14,8 @@ type SupplierAPI = {
 
 export const getSuppliers = async (params: SupplierAPI['params']) => {
   try {
-    const url = `/suppliers/${params}`;
+    const encodedTerm = encodeURIComponent(params);
+    const url = `suppliers/filtered/${encodedTerm}`;
     const { data } = await api.get(url);
     return data
   } catch (error) {
@@ -30,6 +31,23 @@ export const getSupplier = async (id: SupplierAPI['_id']) => {
     const { data } = await api.get(url);
     const response = supplierSchema.safeParse(data);
     if (response.success) {
+      return response.data;
+    }
+  } catch (error) {
+    if (isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.error);
+    } else {
+      throw new Error('Hubo un error');
+    }
+  }
+}
+
+export const getSelectSupplier = async () => {
+  try {
+    const url = '/suppliers/selected';
+    const { data } = await api.get(url);
+    const response = suppliersSelectSchema.safeParse(data);
+    if(response.success) {
       return response.data;
     }
   } catch (error) {

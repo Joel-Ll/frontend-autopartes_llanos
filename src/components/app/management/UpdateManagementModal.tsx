@@ -1,13 +1,12 @@
-import { Box, Button, CircularProgress, Modal, TextField, Typography } from "@mui/material"
-import { Category, CategoryCreateForm } from "../../../types/category"
+import { Box, Button, Modal, TextField, Typography } from "@mui/material"
+import { useMutation, useQuery, useQueryClient, } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getCategory, updateCategory } from "../../../api/categoryAPI";
-import { toast } from "react-toastify";
-import { normalizeName } from "../../../helpers";
-import ErrorMessage from "../../ErrorMessage";
+import { useLocation, useNavigate } from "react-router-dom";
+import { ProductManagement, ProductManagementCreateForm } from "../../../types/managementProduct";
+import { getProductManagement, updateProductManagement } from "../../../api/managementProductAPI";
 import { useEffect } from "react";
+import ErrorMessage from "../../ErrorMessage";
+import { toast } from "react-toastify";
 
 const styles = {
   modal: {
@@ -43,44 +42,44 @@ const styles = {
   }
 };
 
-
-type UpdateCustomerModalprops = {
-  idCategoryEdit: Category['_id']
+const initialValues: ProductManagementCreateForm = {
+  productId: '',
+  productPrice: 0
 }
 
-let initialValues: CategoryCreateForm = {
-  name: '',
+type UpdateManagementModalProps = {
+  setIdProductEdit: React.Dispatch<React.SetStateAction<string>>
+  idProductEdit: ProductManagement['_id']
 }
 
-export default function UpdateCategoryModal({idCategoryEdit}: UpdateCustomerModalprops) {
+export default function UpdateManagementModal({setIdProductEdit, idProductEdit}: UpdateManagementModalProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
-  const editModalCategory = queryParams.get('editCategory');
-  const show = editModalCategory ? true : false;
+  const editModalManagement = queryParams.get('editProductManagement');
+  const show = editModalManagement ? true : false;
   const queryClient = useQueryClient();
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ['category', idCategoryEdit],
-    queryFn: () => getCategory(idCategoryEdit),
+  const { data } = useQuery({
+    queryKey: ['productManagementEdit', idProductEdit],
+    queryFn: () => getProductManagement(idProductEdit),
     refetchOnWindowFocus: false,
     retry: false
   });
 
   const { mutate } = useMutation({
-    mutationFn: updateCategory,
+    mutationFn: updateProductManagement,
     onError: (error) => {
-      toast.error(error.message)
+      toast.error(error.message);
     },
     onSuccess: (data) => {
-      toast.success(data);
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
-      queryClient.invalidateQueries({queryKey: ['category', idCategoryEdit]});
+      toast.success(data)
+      queryClient.invalidateQueries({queryKey: ['getProductsManagement']});
       handleClosedModal();
     }
-  });
+  })
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm({ defaultValues: initialValues});
+  const { register, handleSubmit, reset, formState: { errors } } = useForm({ defaultValues: initialValues });
 
   useEffect(() => {
     if (data) {
@@ -88,19 +87,19 @@ export default function UpdateCategoryModal({idCategoryEdit}: UpdateCustomerModa
     }
   }, [data, reset]);
 
-  const handleUpdateCategorySubmit = (formData: CategoryCreateForm) => {
-    const data = {formData, _id: idCategoryEdit}
-    mutate(data);
+  const handleUpdateCategorySubmit = (formData: ProductManagementCreateForm) => {
+    if(data) {
+      const dataSubmit = { productPrice: formData.productPrice, _id: data._id }
+      mutate(dataSubmit)
+    }
   }
 
   const handleClosedModal = () => {
-    navigate(location.pathname, {replace: true});
-    reset();
+    setIdProductEdit('');
+    navigate(location.pathname, { replace: true });
   }
-  if (isLoading) return <CircularProgress color="inherit" />
-  if (isError) return <Navigate to={'/404'} />
 
-  if(data) return (
+  return (
     <Modal
       open={show}
       onClose={handleClosedModal}
@@ -115,26 +114,27 @@ export default function UpdateCategoryModal({idCategoryEdit}: UpdateCustomerModa
             noValidate
             autoComplete="off"
           >
-            <div className="flex flex-col space-y-3 mb-5">
-                <TextField
-                  id="name"
-                  label="Nombre"
-                  variant="standard"
-                  sx={styles.input}
-                  size="small"
-                  {...register('name', {
-                    required: 'El nombre es obligatorio',
-                    validate: value => {
-                      const normalized = normalizeName(value);
-                      return normalized ? true : 'El nombre no puede estar vacío o ser solo espacios en blanco';
-                    }
-                  })}
-                />
-                {errors.name &&
-                  <ErrorMessage>{errors.name.message}</ErrorMessage>
-                }
-              </div>
-
+            <div className="flex flex-col mb-5">
+              <label className="text-gray-700 font-medium mb-2" htmlFor="productPrice">
+                Precio de Venta
+              </label>
+              <TextField
+                id="productPrice"
+                type="number"
+                size="small"
+                className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5"
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                {...register('productPrice', {
+                  required: 'El precio es obligatorio',
+                  validate: value => value > 0 || 'El precio debe ser mayor a 0'
+                })}
+              />
+              {errors.productPrice &&
+                <ErrorMessage>{errors.productPrice.message}</ErrorMessage>
+              }
+            </div>
 
             <div className="flex flex-row-reverse gap-4">
               <Button

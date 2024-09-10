@@ -44,6 +44,7 @@ export default function UpdateSupplierModal({idSupplierEdit}: UpdateSupplierModa
   const { data, isLoading, isError } = useQuery({
     queryKey: ['supplier', idSupplierEdit],
     queryFn: () => getSupplier(idSupplierEdit),
+    refetchOnWindowFocus: false,
     retry: false
   });
   const {mutate} = useMutation({
@@ -87,7 +88,7 @@ export default function UpdateSupplierModal({idSupplierEdit}: UpdateSupplierModa
     >
       <Box sx={styles.modal}>
         <Typography id="modal-modal-title" variant="h6" component="h2">
-          Nuevo Proveedor
+          Editar Proveedor
         </Typography>
         <Box mt={2}>
           <form

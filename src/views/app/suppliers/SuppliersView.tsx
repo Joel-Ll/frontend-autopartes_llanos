@@ -41,19 +41,20 @@ export default function Suppliers() {
   const navigate = useNavigate();
 
   const queryClient = useQueryClient();
-  const { data, isLoading, isError} = useQuery({
+  const { data, isLoading, isError, isFetching } = useQuery({
     queryKey: ['suppliers'],
     queryFn: () => getSuppliers(searchParams),
+    refetchOnWindowFocus: false,
     retry: false
   });
-  const {mutate} = useMutation({
+  const { mutate } = useMutation({
     mutationFn: deleteSupplier,
     onError: (error) => {
       toast.error(error.message)
     },
     onSuccess: (data) => {
       toast.success(data);
-      queryClient.invalidateQueries({ queryKey: ['suppliers']});
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
     }
   });
 
@@ -79,7 +80,7 @@ export default function Suppliers() {
       cancelButtonText: 'Cancelar',
       confirmButtonText: "Eliminar"
     }).then((result) => {
-      if(result.isConfirmed) {
+      if (result.isConfirmed) {
         mutate(id)
       }
     });
@@ -122,7 +123,7 @@ export default function Suppliers() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {isLoading ? (
+            {(isLoading || isFetching) ? (
               <StyledTableRow>
                 <StyledTableCell colSpan={5} align="center">
                   <CircularProgress color="inherit" />

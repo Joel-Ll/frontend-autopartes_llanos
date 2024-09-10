@@ -43,6 +43,7 @@ export default function UpdateCustomerModal({ idCustomerEdit }: UpdateCustomerMo
   const { data, isLoading, isError } = useQuery({
     queryKey: ['customer', idCustomerEdit],
     queryFn: () => getCustomer(idCustomerEdit),
+    refetchOnWindowFocus: false,
     retry: false
   });
 
@@ -99,7 +100,6 @@ export default function UpdateCustomerModal({ idCustomerEdit }: UpdateCustomerMo
               errors={errors}
             />
 
-
             <div className="flex flex-row-reverse gap-4">
               <Button
                 onClick={handleClosedModal}
@@ -121,7 +121,7 @@ export default function UpdateCustomerModal({ idCustomerEdit }: UpdateCustomerMo
                   '&:hover': { backgroundColor: '#4b5563' }, // un poco más claro para el efecto hover
                 }}
               >
-                Actualizar
+                Aceptar
               </Button>
             </div>
           </form>

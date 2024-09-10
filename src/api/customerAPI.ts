@@ -1,9 +1,9 @@
 import { isAxiosError } from "axios";
 import api from "../lib/axios"
-import { Customer, CustomerCreateForm, customerSchema } from "../types/customer";
+import { Customer, CustomerCreateForm, customerSchema, customersSchema } from "../types/customer";
 
 type CustomerAPI = {
-  _id: Customer['_id']
+  _id: Customer['_id'],
   formData: CustomerCreateForm
   name: string,
   nit_ci: string,
@@ -12,11 +12,16 @@ type CustomerAPI = {
   params: string
 }
 
+// Tipar 
 export const getCustomers = async (params: CustomerAPI['params']) => {
   try {
-    const url = `/customers/${params}`;
+    const encodedTerm = encodeURIComponent(params);
+    const url = `/customers/${encodedTerm}`;
     const { data } = await api.get(url);
-    return data
+    const response = customersSchema.safeParse(data)
+    if( response.success ) {
+      return response.data
+    }
   } catch (error) {
     if (isAxiosError(error) && error.response) {
       throw new Error(error.response.data.error);

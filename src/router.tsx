@@ -9,6 +9,10 @@ import ReportsView from './views/app/reports/ReportsView';
 import SuppliersView from './views/app/suppliers/SuppliersView';
 import ConfigProfileView from './views/app/config/ConfigProfileView';
 import CategoriesView from './views/app/categories/CategoriesView';
+import InventoryManagementView from './views/app/management/InventoryManagementView';
+import SalesView from './views/app/sales/SalesView';
+import PurchaseHistoryView from './views/app/purchaseHistory/PurchaseHistoryView';
+import SalesHistoryView from './views/app/salesHistory/SalesHistoryView';
 
 export const router = createBrowserRouter([
   {
@@ -40,12 +44,28 @@ export const router = createBrowserRouter([
         element: <CategoriesView />
       },
       {
-        path: '/reports',
-        element: <ReportsView />
-      },
-      {
         path: '/suppliers',
         element: <SuppliersView />
+      },
+      {
+        path: '/inventory',
+        element: <InventoryManagementView />
+      },
+      {
+        path: '/purchase-history',
+        element: <PurchaseHistoryView />
+      },
+      {
+        path: '/sales',
+        element: <SalesView />
+      },
+      {
+        path: '/sales-history',
+        element: <SalesHistoryView /> 
+      },
+      {
+        path: '/reports',
+        element: <ReportsView />
       },
       {
         path: '/config',
